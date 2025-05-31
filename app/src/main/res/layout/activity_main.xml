@@ -17,6 +17,7 @@
         android:gravity="center"
         android:orientation="vertical"
         android:padding="16dp"
+        android:rotation="180"
         app:layout_constraintBottom_toTopOf="@+id/controls_layout"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_weight="1"
@@ -75,12 +76,12 @@
     <!-- Control Buttons -->
     <androidx.cardview.widget.CardView
         android:id="@+id/controls_layout"
-        android:elevation="10dp"
-        app:cardCornerRadius="4dp"
-        app:cardElevation="8dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="#CCFFFFFF"
+        android:elevation="10dp"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -92,7 +93,38 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <Button
+            <ImageView
+                android:id="@+id/pause_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_margin="16dp"
+                android:src="@drawable/baseline_pause_24"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Button description"
+                />
+            <ImageView
+                android:id="@+id/reset_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_margin="16dp"
+                android:src="@drawable/baseline_restore_24"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Button description"
+                />
+            <ImageView
+                android:id="@+id/settings_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_margin="16dp"
+                android:src="@drawable/baseline_settings_24"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Button description"
+                />
+
+            <!--<Button
                 android:id="@+id/pause_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -114,7 +146,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:backgroundTint="@color/black"
-                android:text="Settings" />
+                android:text="Settings" />-->
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

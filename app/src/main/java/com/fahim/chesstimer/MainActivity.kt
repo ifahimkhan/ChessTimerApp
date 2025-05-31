@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -27,9 +28,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var player2TimeView: TextView
     private lateinit var player1Layout: LinearLayout
     private lateinit var player2Layout: LinearLayout
-    private lateinit var pauseButton: Button
-    private lateinit var resetButton: Button
-    private lateinit var settingsButton: Button
+    private lateinit var pauseButton: ImageView
+    private lateinit var resetButton: ImageView
+    private lateinit var settingsButton: ImageView
 
     private var player1TimeLeft: Long = 5 * 60 * 1000 // 5 minutes in milliseconds
     private var player2TimeLeft: Long = 5 * 60 * 1000
@@ -252,7 +253,7 @@ class MainActivity : AppCompatActivity() {
 
         updateTimeDisplay()
 //        highlightActivePlayer()
-        pauseButton.text = "Pause"
+        pauseButton.setImageResource(R.drawable.baseline_pause_24)
     }
 
     private fun resumeGame() {
@@ -263,7 +264,7 @@ class MainActivity : AppCompatActivity() {
                 startPlayer2Timer()
             }
             isGamePaused = false
-            pauseButton.text = "Pause"
+            pauseButton.setImageResource(R.drawable.baseline_pause_24)
         }
     }
 
@@ -275,7 +276,7 @@ class MainActivity : AppCompatActivity() {
                 player2Timer.cancel()
             }
             isGamePaused = true
-            pauseButton.text = "Resume"
+            pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
         }
     }
 
