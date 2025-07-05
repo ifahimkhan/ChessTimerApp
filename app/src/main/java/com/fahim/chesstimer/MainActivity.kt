@@ -154,8 +154,8 @@ class MainActivity : AppCompatActivity() {
             val seconds: Int
             val increment: Int
             val min_black: Int
-            val sec_black:Int
-            val inc_black:Int
+            val sec_black: Int
+            val inc_black: Int
             when (timeControlGroup.checkedRadioButtonId) {
                 R.id.control_5_0 -> {
                     minutes = 5
@@ -183,10 +183,12 @@ class MainActivity : AppCompatActivity() {
                     increment =
                         dialogView.findViewById<EditText>(R.id.custom_increment).text.toString()
                             .toIntOrNull() ?: 0
-                    min_black = dialogView.findViewById<EditText>(R.id.custom_minutes_black).text.toString()
-                        .toIntOrNull() ?: 5
-                    sec_black = dialogView.findViewById<EditText>(R.id.custom_seconds_black).text.toString()
-                        .toIntOrNull() ?: 0
+                    min_black =
+                        dialogView.findViewById<EditText>(R.id.custom_minutes_black).text.toString()
+                            .toIntOrNull() ?: 5
+                    sec_black =
+                        dialogView.findViewById<EditText>(R.id.custom_seconds_black).text.toString()
+                            .toIntOrNull() ?: 0
                     inc_black =
                         dialogView.findViewById<EditText>(R.id.custom_increment_black).text.toString()
                             .toIntOrNull() ?: 0
@@ -206,7 +208,7 @@ class MainActivity : AppCompatActivity() {
 
                     updateTimeDisplay()
                     dialog.dismiss()
-                  return@setOnClickListener
+                    return@setOnClickListener
 
                 }
 
