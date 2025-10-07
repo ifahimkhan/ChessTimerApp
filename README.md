@@ -50,7 +50,7 @@ A professional chess timer application for Android devices that provides accurat
 *Alternatively, clone the repository and build in Android Studio:*
 ```bash
 
-git clone https://github.com/yourusername/chess-timer-app.git
+git clone https://github.com/ifahimkhan/chess-timer-app.git
 
 ```
 ## Usage
