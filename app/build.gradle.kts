@@ -11,7 +11,7 @@ android {
         applicationId = "com.fahim.chesstimer"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
+        versionCode = 4
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -19,11 +19,15 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true  // Enable code shrinking and obfuscation
+//            isShrinkResources = true // Enable resource shrinking
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            isMinifyEnabled = false // Disable for debug builds for faster builds
         }
     }
     compileOptions {
