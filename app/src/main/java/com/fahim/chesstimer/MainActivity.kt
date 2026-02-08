@@ -1,6 +1,8 @@
 package com.fahim.chesstimer
 
+import android.media.AudioAttributes
 import android.media.AudioManager
+import android.media.SoundPool
 import android.media.ToneGenerator
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -36,11 +38,14 @@ class MainActivity : AppCompatActivity() {
     private var player2TimeLeft: Long = 5 * 60 * 1000
     private var timeIncrement: Long = 0 // in milliseconds
     private var isPlayer1Turn = true
+    private var isGameStarted = false
     private var isGameRunning = true
     private var isGamePaused = false
     private var timerInterval: Long = 100 // Update interval in ms
 
     private var toneGenerator: ToneGenerator? = null
+    private var soundPool: SoundPool? = null
+    private var tapSoundId: Int = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,11 +57,22 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        volumeControlStream = AudioManager.STREAM_MUSIC
+
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(2)
+            .setAudioAttributes(audioAttributes)
+            .build()
+        tapSoundId = soundPool!!.load(this, R.raw.wood_tap, 1)
+
         try {
-            toneGenerator = ToneGenerator(AudioManager.STREAM_ALARM, 100)
+            toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 50)
         } catch (e: RuntimeException) {
             Log.e("ToneGenerator", "Failed to initialize ToneGenerator", e)
-            // Fallback to MediaPlayer or show error
         }
         player1Timer = object : CountDownTimer(player1TimeLeft, timerInterval) {
             override fun onTick(millisUntilFinished: Long) {
@@ -97,11 +113,25 @@ class MainActivity : AppCompatActivity() {
         // Set initial time display
         updateTimeDisplay()
 
-        player1Layout.setOnClickListener { switchTurn(true) }
-        player2Layout.setOnClickListener { switchTurn(false) }
+        player1Layout.setOnClickListener {
+            if (!isGameStarted) {
+                startGame()
+            } else {
+                switchTurn(true)
+            }
+        }
+        player2Layout.setOnClickListener {
+            if (!isGameStarted) {
+                startGame()
+            } else {
+                switchTurn(false)
+            }
+        }
 
         pauseButton.setOnClickListener {
-            if (isGameRunning && !isGamePaused) {
+            if (!isGameStarted) {
+                startGame()
+            } else if (isGameRunning && !isGamePaused) {
                 pauseGame()
             } else if (isGamePaused) {
                 resumeGame()
@@ -110,7 +140,8 @@ class MainActivity : AppCompatActivity() {
         resetButton.setOnClickListener { resetGame() }
         settingsButton.setOnClickListener { showSettingsDialog() }
 
-//        highlightActivePlayer()
+        // Show play icon initially since game hasn't started
+        pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
 
 
     }
@@ -125,8 +156,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun startGame() {
+        isGameStarted = true
+        isPlayer1Turn = true
+        startPlayer1Timer()
+        pauseButton.setImageResource(R.drawable.baseline_pause_24)
+    }
+
     private fun showSettingsDialog() {
-        if (isGameRunning && !isGamePaused) {
+        if (isGameStarted && isGameRunning && !isGamePaused) {
             Toast.makeText(this, "Pause the game before changing settings", Toast.LENGTH_SHORT)
                 .show()
             return
@@ -206,6 +244,10 @@ class MainActivity : AppCompatActivity() {
                     player2TimeLeft = (min_black * 60 + sec_black) * 1000L
                     timeIncrement = increment * 1000L
 
+                    isGameStarted = false
+                    isGameRunning = true
+                    isGamePaused = false
+                    pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
                     updateTimeDisplay()
                     dialog.dismiss()
                     return@setOnClickListener
@@ -230,6 +272,10 @@ class MainActivity : AppCompatActivity() {
             player2TimeLeft = (minutes * 60 + seconds) * 1000L
             timeIncrement = increment * 1000L
 
+            isGameStarted = false
+            isGameRunning = true
+            isGamePaused = false
+            pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
             updateTimeDisplay()
             dialog.dismiss()
         }
@@ -238,7 +284,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun resetGame() {
-        if (isGameRunning) {
+        if (isGameStarted && isGameRunning) {
             if (isPlayer1Turn) {
                 player1Timer.cancel()
             } else {
@@ -252,10 +298,11 @@ class MainActivity : AppCompatActivity() {
         timeIncrement = 0
         isPlayer1Turn = true
         isGamePaused = false
+        isGameStarted = false
+        isGameRunning = true
 
         updateTimeDisplay()
-//        highlightActivePlayer()
-        pauseButton.setImageResource(R.drawable.baseline_pause_24)
+        pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
     }
 
     private fun resumeGame() {
@@ -271,7 +318,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun pauseGame() {
-        if (isGameRunning) {
+        if (isGameStarted && isGameRunning) {
             if (isPlayer1Turn) {
                 player1Timer.cancel()
             } else {
@@ -296,7 +343,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun switchTurn(isPlayer1Pressed: Boolean) {
         Log.e("TAG", "switchTurn: $isPlayer1Pressed")
-        if (!isGameRunning || isGamePaused) return
+        if (!isGameStarted || !isGameRunning || isGamePaused) return
         // Only allow the active player to press their clock
         if ((isPlayer1Turn && !isPlayer1Pressed) || (!isPlayer1Turn && isPlayer1Pressed)) {
             return
@@ -328,7 +375,7 @@ class MainActivity : AppCompatActivity() {
                 gameOver(false) // Player 1 (White) loses on time
             }
         }
-        toneGenerator?.startTone(ToneGenerator.TONE_PROP_PROMPT)
+        soundPool?.play(tapSoundId, 1f, 1f, 1, 0, 1f)
         player1Timer.start()
     }
 
@@ -345,7 +392,7 @@ class MainActivity : AppCompatActivity() {
                 gameOver(true) // Player 2 (Black) loses on time
             }
         }
-        toneGenerator?.startTone(ToneGenerator.TONE_PROP_PROMPT)
+        soundPool?.play(tapSoundId, 1f, 1f, 1, 0, 1f)
         player2Timer.start()
     }
 
@@ -361,6 +408,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        soundPool?.release()
+        soundPool = null
         toneGenerator?.release()
         toneGenerator = null
         super.onDestroy()
