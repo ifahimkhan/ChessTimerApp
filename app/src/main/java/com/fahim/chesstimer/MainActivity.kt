@@ -1,12 +1,7 @@
 package com.fahim.chesstimer
 
-import android.media.AudioAttributes
 import android.media.AudioManager
-import android.media.SoundPool
-import android.media.ToneGenerator
 import android.os.Bundle
-import android.os.CountDownTimer
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -16,16 +11,18 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var player1Timer: CountDownTimer
-    private lateinit var player2Timer: CountDownTimer
     private lateinit var player1TimeView: TextView
     private lateinit var player2TimeView: TextView
     private lateinit var player1Layout: LinearLayout
@@ -34,19 +31,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resetButton: ImageView
     private lateinit var settingsButton: ImageView
 
-    private var player1TimeLeft: Long = 5 * 60 * 1000 // 5 minutes in milliseconds
-    private var player2TimeLeft: Long = 5 * 60 * 1000
-    private var timeIncrement: Long = 0 // in milliseconds
-    private var isPlayer1Turn = true
-    private var isGameStarted = false
-    private var isGameRunning = true
-    private var isGamePaused = false
-    private var timerInterval: Long = 100 // Update interval in ms
-
-    private var toneGenerator: ToneGenerator? = null
-    private var soundPool: SoundPool? = null
-    private var tapSoundId: Int = 0
-
+    private val viewModel: ChessTimerViewModel by viewModels()
+    private lateinit var soundManager: SoundManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,46 +45,7 @@ class MainActivity : AppCompatActivity() {
         }
         volumeControlStream = AudioManager.STREAM_MUSIC
 
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_GAME)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(2)
-            .setAudioAttributes(audioAttributes)
-            .build()
-        tapSoundId = soundPool!!.load(this, R.raw.wood_tap, 1)
-
-        try {
-            toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 50)
-        } catch (e: RuntimeException) {
-            Log.e("ToneGenerator", "Failed to initialize ToneGenerator", e)
-        }
-        player1Timer = object : CountDownTimer(player1TimeLeft, timerInterval) {
-            override fun onTick(millisUntilFinished: Long) {
-                player1TimeLeft = millisUntilFinished
-                updateTimeDisplay()
-            }
-
-            override fun onFinish() {
-                player1TimeLeft = 0
-                updateTimeDisplay()
-                gameOver(false) // Player 1 (White) loses on time
-            }
-        }
-        player2Timer = object : CountDownTimer(player2TimeLeft, timerInterval) {
-            override fun onTick(millisUntilFinished: Long) {
-                player2TimeLeft = millisUntilFinished
-                updateTimeDisplay()
-            }
-
-            override fun onFinish() {
-                player2TimeLeft = 0
-                updateTimeDisplay()
-                gameOver(true) // Player 2 (Black) loses on time
-            }
-        }
-
+        soundManager = SoundManager(this)
 
         // Initialize views
         player1TimeView = findViewById(R.id.player1_time)
@@ -109,62 +56,82 @@ class MainActivity : AppCompatActivity() {
         resetButton = findViewById(R.id.reset_button)
         settingsButton = findViewById(R.id.settings_button)
 
-
-        // Set initial time display
-        updateTimeDisplay()
-
+        // Click listeners delegate to ViewModel
         player1Layout.setOnClickListener {
-            if (!isGameStarted) {
-                startGame()
+            val state = viewModel.gameState.value
+            if (!state.isGameStarted) {
+                viewModel.startGame()
             } else {
-                switchTurn(true)
+                viewModel.switchTurn(true)
             }
         }
         player2Layout.setOnClickListener {
-            if (!isGameStarted) {
-                startGame()
+            val state = viewModel.gameState.value
+            if (!state.isGameStarted) {
+                viewModel.startGame()
             } else {
-                switchTurn(false)
+                viewModel.switchTurn(false)
             }
         }
 
         pauseButton.setOnClickListener {
-            if (!isGameStarted) {
-                startGame()
-            } else if (isGameRunning && !isGamePaused) {
-                pauseGame()
-            } else if (isGamePaused) {
-                resumeGame()
+            val state = viewModel.gameState.value
+            if (!state.isGameStarted) {
+                viewModel.startGame()
+            } else if (state.isGameRunning && !state.isGamePaused) {
+                viewModel.pauseGame()
+            } else if (state.isGamePaused) {
+                viewModel.resumeGame()
             }
         }
-        resetButton.setOnClickListener { resetGame() }
+        resetButton.setOnClickListener { viewModel.resetGame() }
         settingsButton.setOnClickListener { showSettingsDialog() }
 
-        // Show play icon initially since game hasn't started
-        pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
+        // Observe game state
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.gameState.collect { state ->
+                    updateUI(state)
+                }
+            }
+        }
 
-
-    }
-
-    private fun highlightActivePlayer() {
-        if (isPlayer1Turn) {
-            player1Layout.setBackgroundColor(ContextCompat.getColor(this, R.color.active_player))
-            player2Layout.setBackgroundColor(ContextCompat.getColor(this, R.color.inactive_player))
-        } else {
-            player1Layout.setBackgroundColor(ContextCompat.getColor(this, R.color.inactive_player))
-            player2Layout.setBackgroundColor(ContextCompat.getColor(this, R.color.active_player))
+        // Observe one-shot events
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is GameEvent.PlayTapSound -> soundManager.playTap()
+                        is GameEvent.ShowGameOver -> {
+                            soundManager.playGameOver()
+                            Toast.makeText(this@MainActivity, event.message, Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }
         }
     }
 
-    private fun startGame() {
-        isGameStarted = true
-        isPlayer1Turn = true
-        startPlayer1Timer()
-        pauseButton.setImageResource(R.drawable.baseline_pause_24)
+    private fun updateUI(state: GameState) {
+        player1TimeView.text = formatTime(state.player1TimeLeft)
+        player2TimeView.text = formatTime(state.player2TimeLeft)
+
+        if (!state.isGameStarted || state.isGamePaused || !state.isGameRunning) {
+            pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
+        } else {
+            pauseButton.setImageResource(R.drawable.baseline_pause_24)
+        }
+    }
+
+    private fun formatTime(milliseconds: Long): String {
+        val seconds = (milliseconds / 1000) % 60
+        val minutes = (milliseconds / (1000 * 60)) % 60
+        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
     }
 
     private fun showSettingsDialog() {
-        if (isGameStarted && isGameRunning && !isGamePaused) {
+        val state = viewModel.gameState.value
+        if (state.isGameStarted && state.isGameRunning && !state.isGamePaused) {
             Toast.makeText(this, "Pause the game before changing settings", Toast.LENGTH_SHORT)
                 .show()
             return
@@ -191,9 +158,6 @@ class MainActivity : AppCompatActivity() {
             val minutes: Int
             val seconds: Int
             val increment: Int
-            val min_black: Int
-            val sec_black: Int
-            val inc_black: Int
             when (timeControlGroup.checkedRadioButtonId) {
                 R.id.control_5_0 -> {
                     minutes = 5
@@ -221,13 +185,13 @@ class MainActivity : AppCompatActivity() {
                     increment =
                         dialogView.findViewById<EditText>(R.id.custom_increment).text.toString()
                             .toIntOrNull() ?: 0
-                    min_black =
+                    val minBlack =
                         dialogView.findViewById<EditText>(R.id.custom_minutes_black).text.toString()
                             .toIntOrNull() ?: 5
-                    sec_black =
+                    val secBlack =
                         dialogView.findViewById<EditText>(R.id.custom_seconds_black).text.toString()
                             .toIntOrNull() ?: 0
-                    inc_black =
+                    val incBlack =
                         dialogView.findViewById<EditText>(R.id.custom_increment_black).text.toString()
                             .toIntOrNull() ?: 0
                     // Validate input
@@ -235,30 +199,24 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this, "Invalid time settings", Toast.LENGTH_SHORT).show()
                         return@setOnClickListener
                     }
-                    if (min_black < 0 || sec_black < 0 || inc_black < 0 || (min_black == 0 && sec_black == 0)) {
+                    if (minBlack < 0 || secBlack < 0 || incBlack < 0 || (minBlack == 0 && secBlack == 0)) {
                         Toast.makeText(this, "Invalid time settings", Toast.LENGTH_SHORT).show()
                         return@setOnClickListener
                     }
-                    // Apply settings
-                    player1TimeLeft = (minutes * 60 + seconds) * 1000L
-                    player2TimeLeft = (min_black * 60 + sec_black) * 1000L
-                    timeIncrement = increment * 1000L
-
-                    isGameStarted = false
-                    isGameRunning = true
-                    isGamePaused = false
-                    pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
-                    updateTimeDisplay()
+                    // Apply settings via ViewModel
+                    viewModel.applySettings(
+                        p1Time = (minutes * 60 + seconds) * 1000L,
+                        p2Time = (minBlack * 60 + secBlack) * 1000L,
+                        increment = increment * 1000L
+                    )
                     dialog.dismiss()
                     return@setOnClickListener
-
                 }
 
                 else -> {
                     minutes = 5
                     seconds = 0
                     increment = 0
-                    min_black = 5
                 }
             }
 
@@ -267,151 +225,20 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Invalid time settings", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            // Apply settings
-            player1TimeLeft = (minutes * 60 + seconds) * 1000L
-            player2TimeLeft = (minutes * 60 + seconds) * 1000L
-            timeIncrement = increment * 1000L
-
-            isGameStarted = false
-            isGameRunning = true
-            isGamePaused = false
-            pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
-            updateTimeDisplay()
+            // Apply settings via ViewModel
+            viewModel.applySettings(
+                p1Time = (minutes * 60 + seconds) * 1000L,
+                p2Time = (minutes * 60 + seconds) * 1000L,
+                increment = increment * 1000L
+            )
             dialog.dismiss()
         }
 
         dialog.show()
     }
 
-    private fun resetGame() {
-        if (isGameStarted && isGameRunning) {
-            if (isPlayer1Turn) {
-                player1Timer.cancel()
-            } else {
-                player2Timer.cancel()
-            }
-        }
-
-        // Reset to initial state
-        player1TimeLeft = 5 * 60 * 1000
-        player2TimeLeft = 5 * 60 * 1000
-        timeIncrement = 0
-        isPlayer1Turn = true
-        isGamePaused = false
-        isGameStarted = false
-        isGameRunning = true
-
-        updateTimeDisplay()
-        pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
-    }
-
-    private fun resumeGame() {
-        if (isGamePaused) {
-            if (isPlayer1Turn) {
-                startPlayer1Timer()
-            } else {
-                startPlayer2Timer()
-            }
-            isGamePaused = false
-            pauseButton.setImageResource(R.drawable.baseline_pause_24)
-        }
-    }
-
-    private fun pauseGame() {
-        if (isGameStarted && isGameRunning) {
-            if (isPlayer1Turn) {
-                player1Timer.cancel()
-            } else {
-                player2Timer.cancel()
-            }
-            isGamePaused = true
-            pauseButton.setImageResource(R.drawable.baseline_play_arrow_24)
-        }
-    }
-
-    private fun updateTimeDisplay() {
-        player1TimeView.text = formatTime(player1TimeLeft)
-        player2TimeView.text = formatTime(player2TimeLeft)
-    }
-
-    private fun formatTime(milliseconds: Long): String {
-        val seconds = (milliseconds / 1000) % 60
-        val minutes = (milliseconds / (1000 * 60)) % 60
-        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-    }
-
-
-    private fun switchTurn(isPlayer1Pressed: Boolean) {
-        Log.e("TAG", "switchTurn: $isPlayer1Pressed")
-        if (!isGameStarted || !isGameRunning || isGamePaused) return
-        // Only allow the active player to press their clock
-        if ((isPlayer1Turn && !isPlayer1Pressed) || (!isPlayer1Turn && isPlayer1Pressed)) {
-            return
-        }
-        if (isPlayer1Turn) {
-            player1Timer.cancel()
-            player2TimeLeft += timeIncrement // Add increment
-            startPlayer2Timer()
-        } else {
-            player2Timer.cancel()
-            player1TimeLeft += timeIncrement // Add increment
-            startPlayer1Timer()
-        }
-
-        isPlayer1Turn = !isPlayer1Turn
-//        highlightActivePlayer()
-    }
-
-    private fun startPlayer1Timer() {
-        player1Timer = object : CountDownTimer(player1TimeLeft, timerInterval) {
-            override fun onTick(millisUntilFinished: Long) {
-                player1TimeLeft = millisUntilFinished
-                updateTimeDisplay()
-            }
-
-            override fun onFinish() {
-                player1TimeLeft = 0
-                updateTimeDisplay()
-                gameOver(false) // Player 1 (White) loses on time
-            }
-        }
-        soundPool?.play(tapSoundId, 1f, 1f, 1, 0, 1f)
-        player1Timer.start()
-    }
-
-    private fun startPlayer2Timer() {
-        player2Timer = object : CountDownTimer(player2TimeLeft, timerInterval) {
-            override fun onTick(millisUntilFinished: Long) {
-                player2TimeLeft = millisUntilFinished
-                updateTimeDisplay()
-            }
-
-            override fun onFinish() {
-                player2TimeLeft = 0
-                updateTimeDisplay()
-                gameOver(true) // Player 2 (Black) loses on time
-            }
-        }
-        soundPool?.play(tapSoundId, 1f, 1f, 1, 0, 1f)
-        player2Timer.start()
-    }
-
-
-    private fun gameOver(whiteWins: Boolean) {
-        isGameRunning = false
-
-        // Play sound
-        toneGenerator?.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 2000)
-        // Show winner
-        val winner = if (whiteWins) "White wins!" else "Black wins!"
-        Toast.makeText(this, "Time out! $winner", Toast.LENGTH_LONG).show()
-    }
-
     override fun onDestroy() {
-        soundPool?.release()
-        soundPool = null
-        toneGenerator?.release()
-        toneGenerator = null
+        soundManager.release()
         super.onDestroy()
     }
 }
