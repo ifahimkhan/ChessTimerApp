@@ -42,20 +42,22 @@ class ChessTimerViewModel : ViewModel() {
         timerJob?.cancel()
 
         if (state.isPlayer1Turn) {
-            // Player 1 pressed — switch to player 2
+            // Player 1 pressed — they completed their move, give them increment
             _gameState.update {
                 it.copy(
-                    player2TimeLeft = it.player2TimeLeft + it.timeIncrement,
-                    isPlayer1Turn = false
+                    player1TimeLeft = it.player1TimeLeft + it.timeIncrement,
+                    isPlayer1Turn = false,
+                    player1Moves = it.player1Moves + 1
                 )
             }
             startTimer(isPlayer1 = false)
         } else {
-            // Player 2 pressed — switch to player 1
+            // Player 2 pressed — they completed their move, give them increment
             _gameState.update {
                 it.copy(
-                    player1TimeLeft = it.player1TimeLeft + it.timeIncrement,
-                    isPlayer1Turn = true
+                    player2TimeLeft = it.player2TimeLeft + it.timeIncrement,
+                    isPlayer1Turn = true,
+                    player2Moves = it.player2Moves + 1
                 )
             }
             startTimer(isPlayer1 = true)
