@@ -55,6 +55,7 @@ import com.fahim.chesstimer.ChessTimerViewModel
 import com.fahim.chesstimer.GameEvent
 import com.fahim.chesstimer.R
 import com.fahim.chesstimer.SoundManager
+import com.fahim.chesstimer.ui.component.AnimatedCounter
 import com.fahim.chesstimer.ui.theme.LocalChessTimerColors
 import java.util.Locale
 
@@ -72,6 +73,20 @@ fun TimerScreen(
     }
     val player2TimeText by remember {
         derivedStateOf { formatTime(state.player2TimeLeft) }
+    }
+
+    // Derived minutes/seconds for animated counter (only change on second boundaries)
+    val player1Minutes by remember {
+        derivedStateOf { ((state.player1TimeLeft / 1000) / 60 % 60).toInt() }
+    }
+    val player1Seconds by remember {
+        derivedStateOf { ((state.player1TimeLeft / 1000) % 60).toInt() }
+    }
+    val player2Minutes by remember {
+        derivedStateOf { ((state.player2TimeLeft / 1000) / 60 % 60).toInt() }
+    }
+    val player2Seconds by remember {
+        derivedStateOf { ((state.player2TimeLeft / 1000) % 60).toInt() }
     }
 
     // Derived state for control bar icon (avoids recomposing controls on every tick)
@@ -158,6 +173,8 @@ fun TimerScreen(
                     .weight(1f)
                     .rotate(180f),
                 timeText = player1TimeText,
+                minutes = player1Minutes,
+                seconds = player1Seconds,
                 playerLabel = "WHITE",
                 moves = state.player1Moves,
                 increment = state.timeIncrement,
@@ -180,6 +197,8 @@ fun TimerScreen(
             PlayerTimerArea(
                 modifier = Modifier.weight(1f),
                 timeText = player2TimeText,
+                minutes = player2Minutes,
+                seconds = player2Seconds,
                 playerLabel = "BLACK",
                 moves = state.player2Moves,
                 increment = state.timeIncrement,
@@ -197,6 +216,8 @@ fun TimerScreen(
 @Composable
 private fun PlayerTimerArea(
     timeText: String,
+    minutes: Int,
+    seconds: Int,
     playerLabel: String,
     moves: Int,
     increment: Long,
@@ -282,16 +303,35 @@ private fun PlayerTimerArea(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Timer digits - large monospace
-            Text(
-                text = timeText,
-                style = MaterialTheme.typography.displayLarge.copy(
+            // Timer digits - animated odometer style
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val timerStyle = MaterialTheme.typography.displayLarge.copy(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 72.sp,
                     fontWeight = FontWeight.Bold
-                ),
-                color = timerColor.copy(alpha = pulseAlpha)
-            )
+                )
+                val animatedTimerColor = timerColor.copy(alpha = pulseAlpha)
+
+                AnimatedCounter(
+                    targetValue = minutes,
+                    style = timerStyle,
+                    color = animatedTimerColor,
+                    animationDurationMs = 300,
+                    minDigits = 2
+                )
+                Text(
+                    text = ":",
+                    style = timerStyle,
+                    color = animatedTimerColor
+                )
+                AnimatedCounter(
+                    targetValue = seconds,
+                    style = timerStyle,
+                    color = animatedTimerColor,
+                    animationDurationMs = 300,
+                    minDigits = 2
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
