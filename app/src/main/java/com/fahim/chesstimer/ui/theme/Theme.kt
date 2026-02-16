@@ -23,7 +23,7 @@ import androidx.core.view.WindowCompat
 // Theme Style Enum
 // ==========================================
 
-enum class ThemeStyle { GRANDMASTER, BLITZ }
+enum class ThemeStyle { GRANDMASTER, BLITZ, FOREST_CLASSICAL }
 
 // ==========================================
 // Extended Colors for Chess-Specific UI
@@ -207,6 +207,82 @@ private val BlitzExtendedDark = ChessTimerExtendedColors(
 )
 
 // ==========================================
+// Forest Classical Color Schemes
+// ==========================================
+
+private val ForestClassicalLightScheme = lightColorScheme(
+    primary = FcPrimaryLight,
+    onPrimary = FcOnPrimaryLight,
+    primaryContainer = FcPrimaryContainerLight,
+    onPrimaryContainer = FcOnPrimaryContainerLight,
+    secondary = FcSecondaryLight,
+    onSecondary = FcOnSecondaryLight,
+    secondaryContainer = FcSecondaryContainerLight,
+    onSecondaryContainer = FcOnSecondaryContainerLight,
+    tertiary = FcTertiaryLight,
+    onTertiary = FcOnTertiaryLight,
+    tertiaryContainer = FcTertiaryContainerLight,
+    onTertiaryContainer = FcOnTertiaryContainerLight,
+    background = FcBackgroundLight,
+    onBackground = FcOnBackgroundLight,
+    surface = FcSurfaceLight,
+    onSurface = FcOnSurfaceLight,
+    surfaceVariant = FcSurfaceVariantLight,
+    onSurfaceVariant = FcOnSurfaceVariantLight,
+    outline = FcOutlineLight,
+    outlineVariant = FcOutlineVariantLight,
+    error = FcErrorLight,
+    onError = FcOnErrorLight
+)
+
+private val ForestClassicalDarkScheme = darkColorScheme(
+    primary = FcPrimaryDark,
+    onPrimary = FcOnPrimaryDark,
+    primaryContainer = FcPrimaryContainerDark,
+    onPrimaryContainer = FcOnPrimaryContainerDark,
+    secondary = FcSecondaryDark,
+    onSecondary = FcOnSecondaryDark,
+    secondaryContainer = FcSecondaryContainerDark,
+    onSecondaryContainer = FcOnSecondaryContainerDark,
+    tertiary = FcTertiaryDark,
+    onTertiary = FcOnTertiaryDark,
+    tertiaryContainer = FcTertiaryContainerDark,
+    onTertiaryContainer = FcOnTertiaryContainerDark,
+    background = FcBackgroundDark,
+    onBackground = FcOnBackgroundDark,
+    surface = FcSurfaceDark,
+    onSurface = FcOnSurfaceDark,
+    surfaceVariant = FcSurfaceVariantDark,
+    onSurfaceVariant = FcOnSurfaceVariantDark,
+    outline = FcOutlineDark,
+    outlineVariant = FcOutlineVariantDark,
+    error = FcErrorDark,
+    onError = FcOnErrorDark
+)
+
+private val ForestClassicalExtendedLight = ChessTimerExtendedColors(
+    whitePlayerBackground = FcWhitePlayerLight,
+    whitePlayerText = FcWhitePlayerTextLight,
+    blackPlayerBackground = FcBlackPlayerLight,
+    blackPlayerText = FcBlackPlayerTextLight,
+    activeAccent = FcPrimaryLight,
+    lowTimeWarning = LowTimeWarning,
+    controlBarBackground = FcControlBarLight,
+    controlBarContent = FcControlBarContentLight
+)
+
+private val ForestClassicalExtendedDark = ChessTimerExtendedColors(
+    whitePlayerBackground = FcWhitePlayerDark,
+    whitePlayerText = FcWhitePlayerTextDark,
+    blackPlayerBackground = FcBlackPlayerDark,
+    blackPlayerText = FcBlackPlayerTextDark,
+    activeAccent = FcActiveAccent,
+    lowTimeWarning = LowTimeWarning,
+    controlBarBackground = FcControlBarDark,
+    controlBarContent = FcControlBarContentDark
+)
+
+// ==========================================
 // Shape Systems
 // ==========================================
 
@@ -224,6 +300,14 @@ private val BlitzShapes = Shapes(
     medium = RoundedCornerShape(8.dp),
     large = RoundedCornerShape(12.dp),
     extraLarge = RoundedCornerShape(16.dp)
+)
+
+private val ForestClassicalShapes = Shapes(
+    extraSmall = RoundedCornerShape(6.dp),
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(14.dp),
+    large = RoundedCornerShape(18.dp),
+    extraLarge = RoundedCornerShape(24.dp)
 )
 
 // ==========================================
@@ -250,6 +334,11 @@ fun ChessTimerTheme(
             colorScheme = if (darkTheme) BlitzDarkScheme else BlitzLightScheme
             extendedColors = if (darkTheme) BlitzExtendedDark else BlitzExtendedLight
             shapes = BlitzShapes
+        }
+        ThemeStyle.FOREST_CLASSICAL -> {
+            colorScheme = if (darkTheme) ForestClassicalDarkScheme else ForestClassicalLightScheme
+            extendedColors = if (darkTheme) ForestClassicalExtendedDark else ForestClassicalExtendedLight
+            shapes = ForestClassicalShapes
         }
     }
 

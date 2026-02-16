@@ -47,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,7 +57,9 @@ import com.fahim.chesstimer.GameEvent
 import com.fahim.chesstimer.R
 import com.fahim.chesstimer.SoundManager
 import com.fahim.chesstimer.ui.component.AnimatedCounter
+import com.fahim.chesstimer.ui.theme.ChessTimerTheme
 import com.fahim.chesstimer.ui.theme.LocalChessTimerColors
+import com.fahim.chesstimer.ui.theme.ThemeStyle
 import java.util.Locale
 
 @Composable
@@ -431,4 +434,271 @@ private fun formatTime(milliseconds: Long): String {
     val minutes = (totalSeconds / 60) % 60
     val seconds = totalSeconds % 60
     return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+}
+
+// ==========================================
+// Previews
+// ==========================================
+
+@Preview(
+    name = "Timer Screen – Grandmaster Light",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun TimerScreenPreviewGrandmasterLight() {
+    ChessTimerTheme(themeStyle = ThemeStyle.GRANDMASTER, darkTheme = false) {
+        TimerScreenContent(
+            player1Minutes = 5,
+            player1Seconds = 30,
+            player2Minutes = 4,
+            player2Seconds = 12,
+            player1TimeText = "05:30",
+            player2TimeText = "04:12",
+            player1Moves = 3,
+            player2Moves = 2,
+            timeIncrement = 5000L,
+            isPlayer1Active = false,
+            isPlayer2Active = true,
+            isPlayer1LowTime = false,
+            isPlayer2LowTime = false,
+            showPause = true
+        )
+    }
+}
+
+@Preview(
+    name = "Timer Screen – Grandmaster Dark",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun TimerScreenPreviewGrandmasterDark() {
+    ChessTimerTheme(themeStyle = ThemeStyle.GRANDMASTER, darkTheme = true) {
+        TimerScreenContent(
+            player1Minutes = 5,
+            player1Seconds = 30,
+            player2Minutes = 4,
+            player2Seconds = 12,
+            player1TimeText = "05:30",
+            player2TimeText = "04:12",
+            player1Moves = 3,
+            player2Moves = 2,
+            timeIncrement = 5000L,
+            isPlayer1Active = false,
+            isPlayer2Active = true,
+            isPlayer1LowTime = false,
+            isPlayer2LowTime = false,
+            showPause = true
+        )
+    }
+}
+
+@Preview(
+    name = "Timer Screen – Blitz Light",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun TimerScreenPreviewBlitzLight() {
+    ChessTimerTheme(themeStyle = ThemeStyle.BLITZ, darkTheme = false) {
+        TimerScreenContent(
+            player1Minutes = 2,
+            player1Seconds = 45,
+            player2Minutes = 0,
+            player2Seconds = 18,
+            player1TimeText = "02:45",
+            player2TimeText = "00:18",
+            player1Moves = 15,
+            player2Moves = 14,
+            timeIncrement = 3000L,
+            isPlayer1Active = true,
+            isPlayer2Active = false,
+            isPlayer1LowTime = false,
+            isPlayer2LowTime = true,
+            showPause = true
+        )
+    }
+}
+
+@Preview(
+    name = "Timer Screen – Blitz Dark",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun TimerScreenPreviewBlitzDark() {
+    ChessTimerTheme(themeStyle = ThemeStyle.BLITZ, darkTheme = true) {
+        TimerScreenContent(
+            player1Minutes = 2,
+            player1Seconds = 45,
+            player2Minutes = 0,
+            player2Seconds = 18,
+            player1TimeText = "02:45",
+            player2TimeText = "00:18",
+            player1Moves = 15,
+            player2Moves = 14,
+            timeIncrement = 3000L,
+            isPlayer1Active = true,
+            isPlayer2Active = false,
+            isPlayer1LowTime = false,
+            isPlayer2LowTime = true,
+            showPause = true
+        )
+    }
+}
+
+@Preview(
+    name = "Timer Screen – Not Started",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun TimerScreenPreviewNotStarted() {
+    ChessTimerTheme(themeStyle = ThemeStyle.GRANDMASTER, darkTheme = false) {
+        TimerScreenContent(
+            player1Minutes = 10,
+            player1Seconds = 0,
+            player2Minutes = 10,
+            player2Seconds = 0,
+            player1TimeText = "10:00",
+            player2TimeText = "10:00",
+            player1Moves = 0,
+            player2Moves = 0,
+            timeIncrement = 0L,
+            isPlayer1Active = false,
+            isPlayer2Active = false,
+            isPlayer1LowTime = false,
+            isPlayer2LowTime = false,
+            showPause = false
+        )
+    }
+}
+
+@Preview(
+    name = "Timer Screen – Forest Classical Light",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun TimerScreenPreviewForestClassicalLight() {
+    ChessTimerTheme(themeStyle = ThemeStyle.FOREST_CLASSICAL, darkTheme = false) {
+        TimerScreenContent(
+            player1Minutes = 45,
+            player1Seconds = 0,
+            player2Minutes = 43,
+            player2Seconds = 27,
+            player1TimeText = "45:00",
+            player2TimeText = "43:27",
+            player1Moves = 0,
+            player2Moves = 1,
+            timeIncrement = 30000L,
+            isPlayer1Active = true,
+            isPlayer2Active = false,
+            isPlayer1LowTime = false,
+            isPlayer2LowTime = false,
+            showPause = true
+        )
+    }
+}
+
+@Preview(
+    name = "Timer Screen – Forest Classical Dark",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun TimerScreenPreviewForestClassicalDark() {
+    ChessTimerTheme(themeStyle = ThemeStyle.FOREST_CLASSICAL, darkTheme = true) {
+        TimerScreenContent(
+            player1Minutes = 45,
+            player1Seconds = 0,
+            player2Minutes = 43,
+            player2Seconds = 27,
+            player1TimeText = "45:00",
+            player2TimeText = "43:27",
+            player1Moves = 0,
+            player2Moves = 1,
+            timeIncrement = 30000L,
+            isPlayer1Active = true,
+            isPlayer2Active = false,
+            isPlayer1LowTime = false,
+            isPlayer2LowTime = false,
+            showPause = true
+        )
+    }
+}
+
+/**
+ * Stateless preview shell that mirrors the real TimerScreen layout
+ * without requiring a ViewModel.
+ */
+@Composable
+private fun TimerScreenContent(
+    player1Minutes: Int,
+    player1Seconds: Int,
+    player2Minutes: Int,
+    player2Seconds: Int,
+    player1TimeText: String,
+    player2TimeText: String,
+    player1Moves: Int,
+    player2Moves: Int,
+    timeIncrement: Long,
+    isPlayer1Active: Boolean,
+    isPlayer2Active: Boolean,
+    isPlayer1LowTime: Boolean,
+    isPlayer2LowTime: Boolean,
+    showPause: Boolean
+) {
+    val extendedColors = LocalChessTimerColors.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(extendedColors.controlBarBackground)
+    ) {
+        PlayerTimerArea(
+            modifier = Modifier
+                .weight(1f)
+                .rotate(180f),
+            timeText = player1TimeText,
+            minutes = player1Minutes,
+            seconds = player1Seconds,
+            playerLabel = "WHITE",
+            moves = player1Moves,
+            increment = timeIncrement,
+            isActive = isPlayer1Active,
+            isWhitePlayer = true,
+            isLowTime = isPlayer1LowTime,
+            onClick = {}
+        )
+
+        ControlBar(
+            showPause = showPause,
+            onPlayPause = {},
+            onReset = {},
+            onSettings = {}
+        )
+
+        PlayerTimerArea(
+            modifier = Modifier.weight(1f),
+            timeText = player2TimeText,
+            minutes = player2Minutes,
+            seconds = player2Seconds,
+            playerLabel = "BLACK",
+            moves = player2Moves,
+            increment = timeIncrement,
+            isActive = isPlayer2Active,
+            isWhitePlayer = false,
+            isLowTime = isPlayer2LowTime,
+            onClick = {}
+        )
+    }
 }

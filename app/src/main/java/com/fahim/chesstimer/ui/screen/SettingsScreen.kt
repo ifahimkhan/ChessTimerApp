@@ -176,6 +176,15 @@ fun SettingsScreen(
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 )
+                FilterChip(
+                    selected = currentTheme == ThemeStyle.FOREST_CLASSICAL,
+                    onClick = { onThemeChanged(ThemeStyle.FOREST_CLASSICAL) },
+                    label = { Text("Forest") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
