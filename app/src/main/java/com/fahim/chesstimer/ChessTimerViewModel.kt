@@ -24,6 +24,11 @@ class ChessTimerViewModel : ViewModel() {
     private var timerJob: Job? = null
     private val timerInterval = 100L
 
+    // Remember configured settings for reset
+    private var configuredP1Time = 5 * 60 * 1000L
+    private var configuredP2Time = 5 * 60 * 1000L
+    private var configuredIncrement = 0L
+
     fun startGame() {
         _gameState.update { it.copy(isGameStarted = true, isPlayer1Turn = true) }
         startTimer(isPlayer1 = true)
@@ -84,11 +89,18 @@ class ChessTimerViewModel : ViewModel() {
 
     fun resetGame() {
         timerJob?.cancel()
-        _gameState.value = GameState()
+        _gameState.value = GameState(
+            player1TimeLeft = configuredP1Time,
+            player2TimeLeft = configuredP2Time,
+            timeIncrement = configuredIncrement
+        )
     }
 
     fun applySettings(p1Time: Long, p2Time: Long, increment: Long) {
         timerJob?.cancel()
+        configuredP1Time = p1Time
+        configuredP2Time = p2Time
+        configuredIncrement = increment
         _gameState.value = GameState(
             player1TimeLeft = p1Time,
             player2TimeLeft = p2Time,
