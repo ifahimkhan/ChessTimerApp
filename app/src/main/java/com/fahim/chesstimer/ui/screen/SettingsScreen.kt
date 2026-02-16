@@ -1,6 +1,7 @@
 package com.fahim.chesstimer.ui.screen
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -108,6 +109,8 @@ fun SettingsScreen(
     onThemeChanged: (ThemeStyle) -> Unit,
     onBack: () -> Unit
 ) {
+    BackHandler { onBack() }
+
     val context = LocalContext.current
 
     // Form state
