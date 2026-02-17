@@ -1,6 +1,6 @@
 # Chess Timer App
 
-![Chess Timer App Screenshot](screenshot.png)
+![Chess Timer App Screenshot](screenshot.png)(screenshot1.png)
 
 > Professional time management for chess matches
 

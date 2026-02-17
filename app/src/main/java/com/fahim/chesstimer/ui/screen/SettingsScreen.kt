@@ -44,8 +44,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fahim.chesstimer.ChessTimerViewModel
+import com.fahim.chesstimer.ui.theme.ChessTimerTheme
 import com.fahim.chesstimer.ui.theme.LocalChessTimerColors
 import com.fahim.chesstimer.ui.theme.ThemeStyle
 
@@ -101,7 +103,6 @@ private val timeCategories = listOf(
 // Settings Screen
 // ==========================================
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     viewModel: ChessTimerViewModel,
@@ -113,6 +114,29 @@ fun SettingsScreen(
 
     val context = LocalContext.current
 
+    SettingsScreenContent(
+        currentTheme = currentTheme,
+        onThemeChanged = onThemeChanged,
+        onBack = onBack,
+        onApply = { p1Time, p2Time, increment ->
+            viewModel.applySettings(p1Time = p1Time, p2Time = p2Time, increment = increment)
+            onBack()
+        },
+        onError = { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun SettingsScreenContent(
+    currentTheme: ThemeStyle = ThemeStyle.GRANDMASTER,
+    onThemeChanged: (ThemeStyle) -> Unit = {},
+    onBack: () -> Unit = {},
+    onApply: (p1Time: Long, p2Time: Long, increment: Long) -> Unit = { _, _, _ -> },
+    onError: (String) -> Unit = {}
+) {
     // Form state
     var whiteMinutes by remember { mutableStateOf("5") }
     var whiteSeconds by remember { mutableStateOf("0") }
@@ -323,20 +347,19 @@ fun SettingsScreen(
                     val bSec = if (sameTimeForBoth) wSec else (blackSeconds.toIntOrNull() ?: 0)
 
                     if (wMin == 0 && wSec == 0) {
-                        Toast.makeText(context, "White time cannot be zero", Toast.LENGTH_SHORT).show()
+                        onError("White time cannot be zero")
                         return@Button
                     }
                     if (bMin == 0 && bSec == 0) {
-                        Toast.makeText(context, "Black time cannot be zero", Toast.LENGTH_SHORT).show()
+                        onError("Black time cannot be zero")
                         return@Button
                     }
 
-                    viewModel.applySettings(
-                        p1Time = (wMin * 60L + wSec) * 1000L,
-                        p2Time = (bMin * 60L + bSec) * 1000L,
-                        increment = wInc * 1000L
+                    onApply(
+                        (wMin * 60L + wSec) * 1000L,
+                        (bMin * 60L + bSec) * 1000L,
+                        wInc * 1000L
                     )
-                    onBack()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -457,5 +480,87 @@ private fun TimeInputField(
             ),
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+// ==========================================
+// Previews
+// ==========================================
+
+@Preview(
+    name = "Settings – Grandmaster Light",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun SettingsScreenPreviewGrandmasterLight() {
+    ChessTimerTheme(themeStyle = ThemeStyle.GRANDMASTER, darkTheme = false) {
+        SettingsScreenContent(currentTheme = ThemeStyle.GRANDMASTER)
+    }
+}
+
+@Preview(
+    name = "Settings – Grandmaster Dark",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun SettingsScreenPreviewGrandmasterDark() {
+    ChessTimerTheme(themeStyle = ThemeStyle.GRANDMASTER, darkTheme = true) {
+        SettingsScreenContent(currentTheme = ThemeStyle.GRANDMASTER)
+    }
+}
+
+@Preview(
+    name = "Settings – Blitz Light",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun SettingsScreenPreviewBlitzLight() {
+    ChessTimerTheme(themeStyle = ThemeStyle.BLITZ, darkTheme = false) {
+        SettingsScreenContent(currentTheme = ThemeStyle.BLITZ)
+    }
+}
+
+@Preview(
+    name = "Settings – Blitz Dark",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun SettingsScreenPreviewBlitzDark() {
+    ChessTimerTheme(themeStyle = ThemeStyle.BLITZ, darkTheme = true) {
+        SettingsScreenContent(currentTheme = ThemeStyle.BLITZ)
+    }
+}
+
+@Preview(
+    name = "Settings – Forest Classical Light",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun SettingsScreenPreviewForestClassicalLight() {
+    ChessTimerTheme(themeStyle = ThemeStyle.FOREST_CLASSICAL, darkTheme = false) {
+        SettingsScreenContent(currentTheme = ThemeStyle.FOREST_CLASSICAL)
+    }
+}
+
+@Preview(
+    name = "Settings – Forest Classical Dark",
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun SettingsScreenPreviewForestClassicalDark() {
+    ChessTimerTheme(themeStyle = ThemeStyle.FOREST_CLASSICAL, darkTheme = true) {
+        SettingsScreenContent(currentTheme = ThemeStyle.FOREST_CLASSICAL)
     }
 }
